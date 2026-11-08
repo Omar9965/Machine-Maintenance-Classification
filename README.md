@@ -1,4 +1,4 @@
-# 🛠️ Machine Predictive Maintenance Classification
+# 🛠️ Machine Maintenance Classification
 
 A **full-stack FastAPI application** for **predicting machine failure** using XGBoost classification, built with a scalable **MVC architecture**, feature engineering pipelines, and a modern dark-themed web UI.
 
@@ -35,7 +35,7 @@ Key components:
 ✅ Pydantic validation with type-safe configuration  
 ✅ Global error handling middleware  
 ✅ Centralized logging  
-✅ Docker-ready for consistent deployment
+✅ Docker Compose configuration for local development
 
 ---
 
@@ -45,11 +45,11 @@ Key components:
 - **App Factory** — `create_app()` assembles all layers, enabling multiple configurations and easy testing.
 - **Dual Interface** — REST API for programmatic access + Web UI for interactive predictions.
 - **Pydantic Settings** — Type-safe, validated configuration from `.env` files with caching.
-- **ModelManager** — ML model lifecycle management with lazy-load safety.
+- **ModelManager** — Loads the trained model and preprocessor at application startup.
 - **PredictionService** — Business logic decoupled from HTTP — reusable from API, web, or CLI.
 - **Modern Web UI** — Dark glassmorphism theme with animations, responsive design, and a probability gauge.
 - **Global Error Handling** — Consistent JSON error responses for API, user-friendly error display for web.
-- **Dockerized** — Ready for deployment on any environment.
+- **Docker Compose** — Runs the application with the project mounted into the container.
 
 ---
 
@@ -80,32 +80,34 @@ Client Request
 ## 🗂️ Project Structure
 
 ```
-Machine-Maintenance-Classification-API/
+Machine-Maintenance-Classification/
 │
 ├── app/
 │   ├── __init__.py                    # App factory (create_app)
 │   │
+│   ├── controllers/                   # API and web controllers
+│   │   ├── api/
+│   │   └── web/
+│   │
 │   ├── core/
-│   │   ├── config.py                  # Pydantic BaseSettings
+│   │   ├── config.py                  # Pydantic settings
 │   │   └── logging.py                 # Centralized logging
 │   │
-│   ├── models/                        # MODEL layer
-│   │   ├── schemas.py                 # Pydantic request/response schemas
-│   │   └── ml_models.py              # ModelManager (load & serve models)
+│   ├── middleware/
+│   │   └── error_handler.py           # Global exception handlers
 │   │
-│   ├── services/                      # Business logic layer
+│   ├── models/
+│   │   ├── schemas.py                 # Pydantic request/response schemas
+│   │   └── ml_models.py               # ModelManager (load & serve models)
+│   │
+│   ├── routes/
+│   │   └── router.py                  # Route registration
+│   │
+│   ├── services/
 │   │   ├── prediction_service.py      # Prediction orchestration
 │   │   └── feature_engineering.py     # 14 derived features
 │   │
-│   ├── controllers/                   # CONTROLLER layer
-│   │   ├── api/
-│   │   │   ├── home_controller.py     # GET /api/v1/
-│   │   │   └── prediction_controller.py  # POST /api/v1/predict/xgboost
-│   │   └── web/
-│   │       ├── home_controller.py     # GET /
-│   │       └── prediction_controller.py  # GET & POST /predict
-│   │
-│   ├── views/                         # VIEW layer
+│   └── views/
 │   │   ├── templates/
 │   │   │   ├── base.html              # Base layout with navigation
 │   │   │   ├── index.html             # Landing page
@@ -114,12 +116,6 @@ Machine-Maintenance-Classification-API/
 │   │   └── static/
 │   │       ├── css/style.css          # Dark theme design system
 │   │       └── js/main.js             # Client-side interactivity
-│   │
-│   ├── middleware/
-│   │   └── error_handler.py           # Global exception handlers
-│   │
-│   └── routes/
-│       └── router.py                  # Central route registration
 │
 ├── Models/
 │   ├── preprocessor.pkl               # Sklearn preprocessing pipeline
@@ -132,14 +128,13 @@ Machine-Maintenance-Classification-API/
 │   └── model.ipynb                    # EDA & training notebook
 │
 ├── tests/
-│   ├── conftest.py                    # Pytest fixtures
-│   └── test_api.py                    # API & web endpoint tests
+│   └── test_api.py                    # API and web endpoint tests
 │
 ├── main.py                            # Entry point
 ├── requirements.txt                   # Python dependencies
 ├── Dockerfile                         # Docker build
 ├── docker-compose.yaml                # Docker orchestration
-├── env.example                        # Example environment variables
+├── .env.example                       # Example environment variables
 └── README.md
 ```
 
@@ -150,15 +145,15 @@ Machine-Maintenance-Classification-API/
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/Omar9965/Machine-Maintenance-Classification-API
-cd Machine-Maintenance-Classification-API
+git clone https://github.com/Omar9965/Machine-Maintenance-Classification.git
+cd Machine-Maintenance-Classification
 ```
 
 ### 2️⃣ Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
-# Windows:
+# Windows PowerShell:
 .venv\Scripts\activate
 # macOS/Linux:
 source .venv/bin/activate
@@ -172,20 +167,32 @@ pip install -r requirements.txt
 
 ### 4️⃣ Configure environment variables
 
-```bash
-cp env.example .env
+Copy the example file to `.env` if you want to configure environment variables. On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-Available variables:
+On macOS/Linux:
 
-| Variable    | Default                                           | Description              |
-| ----------- | ------------------------------------------------- | ------------------------ |
-| `APP_NAME`  | Machine Predictive Maintenance Classification API | Application display name |
-| `VERSION`   | 1.0                                               | API version              |
-| `DEBUG`     | false                                             | Debug mode               |
-| `HOST`      | 0.0.0.0                                           | Server host              |
-| `PORT`      | 8000                                              | Server port              |
-| `LOG_LEVEL` | INFO                                              | Logging level            |
+```bash
+cp .env.example .env
+```
+
+The app loads these optional settings from the environment or `.env`:
+
+| Variable     | Default                                            | Description                                      |
+| ------------ | -------------------------------------------------- | ------------------------------------------------ |
+| `APP_NAME`   | Machine Predictive Maintenance Classification API | Application display name                         |
+| `VERSION`    | `1.0`                                              | Application/API version                          |
+| `HOST`       | `0.0.0.0`                                          | Configured server host                           |
+| `PORT`       | `8000`                                             | Configured server port                           |
+| `LOG_LEVEL`  | `INFO`                                             | Logging level                                    |
+| `MODELS_DIR` | `<project root>/Models`                            | Directory containing both model artifacts       |
+
+`HOST` and `PORT` are settings; the local Uvicorn command below explicitly binds to `127.0.0.1:8000`.
+
+The model files `Models/preprocessor.pkl` and `Models/xgb_model.pkl` must be present. The application loads both at startup, so the app and its tests will not start without them.
 
 ---
 
@@ -194,22 +201,25 @@ Available variables:
 ### Running locally
 
 ```bash
-uvicorn main:app --reload
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Access:
 
 - 🌐 **Web UI**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - 📋 **Prediction Form**: [http://127.0.0.1:8000/predict](http://127.0.0.1:8000/predict)
-- 📖 **Swagger Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- 📘 **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+- **API health check**: [http://127.0.0.1:8000/api/v1/](http://127.0.0.1:8000/api/v1/)
 
-### Running with Docker
+Swagger, ReDoc, and the OpenAPI schema are disabled in the current app configuration.
+
+### Running with Docker Compose
 
 ```bash
-docker-compose build
-docker-compose up
+docker compose build
+docker compose up
 ```
+
+Docker Compose reads `.env` and mounts the project directory into the container. Create `.env` from `.env.example` first. The Docker build excludes `Models/` and `*.pkl`, so running the image by itself without mounting or providing the model artifacts will fail during startup.
 
 ---
 
@@ -269,6 +279,8 @@ Content-Type: application/json
 
 ### Response
 
+Example output (the values depend on the input and model artifacts):
+
 ```json
 {
   "Failure_prediction": false,
@@ -303,5 +315,7 @@ Tests cover:
 - ✅ Prediction with valid input
 - ✅ Validation rejection for invalid / missing / out-of-range input
 - ✅ Web page rendering (home, form, form submission)
+
+Tests create the real application and load both model artifacts, so run them from the repository root with `Models/preprocessor.pkl` and `Models/xgb_model.pkl` available.
 
 ---
