@@ -300,63 +300,6 @@ body {
   line-height: 1.6;
 }
 
-/* --- API Section --- */
-.api-section {
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.api-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.api-endpoint {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.method-badge {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.method-badge.post {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--accent-green);
-}
-
-.api-endpoint code {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.code-block {
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.code-block pre {
-  margin: 0;
-  overflow-x: auto;
-}
-
-.code-block code {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: 0.85rem;
-  color: var(--accent-cyan);
-  line-height: 1.7;
-}
-
 /* --- Predict Form --- */
 .predict-section {
   max-width: 700px;

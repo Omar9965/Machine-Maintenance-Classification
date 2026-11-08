@@ -6,7 +6,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+myenv/
 # Distribution / packaging
 .Python
 build/
@@ -75,6 +75,8 @@ docs/_build/
 # PyBuilder
 .pybuilder/
 target/
+
+.opencode/
 
 # Jupyter Notebook
 .ipynb_checkpoints
