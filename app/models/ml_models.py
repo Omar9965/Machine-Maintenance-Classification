@@ -1,6 +1,9 @@
 import os
 import joblib
 from app.core.logging import get_logger
+from app.core.config import get_settings
+
+threshold = get_settings().THRESHOLD
 
 logger = get_logger(__name__)
 
@@ -17,7 +20,7 @@ class ModelManager:
         self._models_dir = models_dir
         self._preprocessor = None
         self._model = None
-        self._threshold: float = 0.8966
+        self._threshold: float = threshold
 
     def load_models(self) -> None:
         """Load all ML artifacts from disk."""
