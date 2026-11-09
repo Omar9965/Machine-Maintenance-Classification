@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from app.controllers.api import home_controller as api_home
 from app.controllers.api import prediction_controller as api_prediction
-from app.controllers.web import home_controller as web_home
-from app.controllers.web import prediction_controller as web_prediction
+from app.controllers.api import dashboard_controller as api_dashboard
+from app.controllers.web import dashboard_controller as web_dashboard
 
 
 def register_routes(app: FastAPI) -> None:
@@ -11,7 +11,7 @@ def register_routes(app: FastAPI) -> None:
     # --- API routes (versioned) ---
     app.include_router(api_home.router, prefix="/api/v1")
     app.include_router(api_prediction.router, prefix="/api/v1")
+    app.include_router(api_dashboard.router, prefix="/api/v1")
 
     # --- Web routes ---
-    app.include_router(web_home.router)
-    app.include_router(web_prediction.router)
+    app.include_router(web_dashboard.router)
