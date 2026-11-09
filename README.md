@@ -29,7 +29,7 @@ Key components:
 ✅ App factory pattern for scalability and testability  
 ✅ Feature engineering pipeline (14 derived features)  
 ✅ Preprocessing pipelines (scaling, encoding)  
-✅ Tuned classification threshold for precision  
+✅ Configurable classification threshold (default `0.8966`)
 ✅ REST API with versioned endpoints (`/api/v1/`)  
 ✅ Web UI with prediction form and result visualization  
 ✅ Pydantic validation with type-safe configuration  
@@ -45,6 +45,7 @@ Key components:
 - **App Factory** — `create_app()` assembles all layers, enabling multiple configurations and easy testing.
 - **Dual Interface** — REST API for programmatic access + Web UI for interactive predictions.
 - **Pydantic Settings** — Type-safe, validated configuration from `.env` files with caching.
+- **Configurable threshold** — `THRESHOLD` controls the probability cutoff for a positive failure prediction.
 - **ModelManager** — Loads the trained model and preprocessor at application startup.
 - **PredictionService** — Business logic decoupled from HTTP — reusable from API, web, or CLI.
 - **Modern Web UI** — Dark glassmorphism theme with animations, responsive design, and a probability gauge.
@@ -188,6 +189,7 @@ The app loads these optional settings from the environment or `.env`:
 | `HOST`       | `0.0.0.0`                                          | Configured server host                           |
 | `PORT`       | `8000`                                             | Configured server port                           |
 | `LOG_LEVEL`  | `INFO`                                             | Logging level                                    |
+| `THRESHOLD`  | `0.8966`                                           | Probability cutoff for a positive failure prediction |
 | `MODELS_DIR` | `<project root>/Models`                            | Directory containing both model artifacts       |
 
 `HOST` and `PORT` are settings; the local Uvicorn command below explicitly binds to `127.0.0.1:8000`.
