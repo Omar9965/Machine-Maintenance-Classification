@@ -7,11 +7,11 @@ templates = Jinja2Templates(directory="app/views/templates")
 
 
 @router.get("/")
-async def home(request: Request):
-    """Render the landing page."""
+async def dashboard(request: Request):
+    """Render the monitoring dashboard — the only web page."""
     settings = request.app.state.settings
     return templates.TemplateResponse(
-        "index.html",
+        "dashboard.html",
         {
             "request": request,
             "app_name": settings.APP_NAME,

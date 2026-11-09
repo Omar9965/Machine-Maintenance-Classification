@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Monitoring Dashboard — {{ app_name }}{% endblock %}
+
+{% block head %}
+<style>
+  /* Chart-specific sizing handled in style.css */
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="dash-header">
+  <div>
+    <h1 class="page-title">Monitoring Dashboard</h1>
+    <p class="page-subtitle">
+      Simulated machine sensor stream — scored by the XGBoost model.
+      Outcome data is ground truth from the held-out test split.
+    </p>
+  </div>
+  <div class="replay-status">
+    <span id="replayCounts">0 / 0</span>
+    <div class="replay-progress">
+      <div id="replayProgressFill" class="replay-progress-fill" style="width: 0%"></div>
+    </div>
+    <div id="dashLoading" class="dash-loading">
+      <span class="spinner"></span> loading
+    </div>
+  </div>
+</header>
+
+<div id="errorBanner" class="alert alert-error banner-hidden" role="alert">
+  <span id="errorMsg">Connection problem.</span>
+  <button id="retryBtn" class="btn btn-secondary btn-sm" type="button">Retry</button>
+</div>
+
+<div id="completeBanner" class="alert banner-complete banner-hidden" role="status">
+  <strong>Replay complete.</strong>&nbsp;
+  <span id="completeText">All machines have been replayed.</span>
+</div>
+
+<div class="controls-bar">
+  <button id="playBtn" class="btn btn-primary btn-sm" type="button">
+    <span id="playBtnText">Pause</span>
+  </button>
+  <div class="form-group">
+    <label class="form-label" for="batchSizeSelect">Batch size</label>
+    <select id="batchSizeSelect" class="form-control"></select>
+  </div>
+  <button id="resetBtn" class="btn btn-secondary btn-sm" type="button">Reset</button>
+  <div class="form-group threshold-group">
+    <div class="threshold-row">
+      <label class="form-label" for="thresholdSlider">Threshold</label>
+      <span id="thresholdValue" class="threshold-value">–</span>
+    </div>
+    <input
+      id="thresholdSlider"
+      class="threshold-slider"
+      type="range"
+      min="0"
+      max="1"
+      step="0.0001"
+    />
+  </div>
+</div>
+
+<section class="kpi-grid" id="kpiGrid">
+  <div class="kpi-card">
+    <div class="kpi-label">Machines scored</div>
+    <div id="kpiScored" class="kpi-value kpi-blue">0</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Flagged (latest batch)</div>
+    <div id="kpiFlagged" class="kpi-value kpi-red">0</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Flag rate (latest)</div>
+    <div id="kpiFlagRate" class="kpi-value kpi-amber">0%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Precision (cumulative)</div>
+    <div id="kpiPrecision" class="kpi-value kpi-green">–</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Recall (cumulative)</div>
+    <div id="kpiRecall" class="kpi-value kpi-green">–</div>
+  </div>
+</section>
+
+<section class="dash-row flagged-row">
+  <div class="panel">
+    <div class="panel-title">Flagged machines — latest batch</div>
+    <div class="panel-subtitle">
+      Rows whose risk score reached the threshold. Simulated outcome from test data.
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>UDI</th>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Torque</th>
+            <th>Speed</th>
+            <th>Wear</th>
+            <th>Score</th>
+            <th>Top factors</th>
+            <th>Outcome</th>
+          </tr>
+        </thead>
+        <tbody id="flaggedTableBody">
+          <tr>
+            <td colspan="9" class="table-empty">No flagged machines in the latest batch.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Risk score distribution</div>
+    <div class="panel-subtitle">All scored machines so far. Amber line marks the threshold.</div>
+    <div class="chart-container">
+      <canvas id="histogramChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<section class="dash-row charts-row">
+  <div class="panel">
+    <div class="panel-title">Precision &amp; recall per batch</div>
+    <div class="panel-subtitle">Recomputed client-side for the current threshold.</div>
+    <div class="chart-container">
+      <canvas id="prChart"></canvas>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Failure modes — caught vs missed</div>
+    <div class="panel-subtitle">
+      Simulated outcome ground truth (TWF/HDF/PWF/OSF/RNF), cumulative.
+    </div>
+    <div class="chart-container">
+      <canvas id="modeChart"></canvas>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/vendor/chart.umd.js"></script>
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}
