@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     THRESHOLD: float = 0.8966
 
+    # Simulation / monitoring
+    TEST_SET_PATH: str = ""
+    SIM_SEED: int = 42
+    SIM_BATCH_SIZE: int = 50
+    SIM_BATCH_MAX: int = 200
+    DASHBOARD_POLL_MS: int = 5000
+
     # Paths
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     MODELS_DIR: str = ""
@@ -26,6 +33,8 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         if not self.MODELS_DIR:
             self.MODELS_DIR = os.path.join(self.BASE_DIR, "Models")
+        if not self.TEST_SET_PATH:
+            self.TEST_SET_PATH = os.path.join(self.BASE_DIR, "Data", "test_set.csv")
 
 
 @lru_cache()
