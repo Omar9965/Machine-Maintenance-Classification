@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import Literal
 
 
@@ -81,3 +82,102 @@ class ErrorResponse(BaseModel):
 
     detail: str
     status_code: int
+
+
+# --- Dashboard / simulation schemas ---
+
+
+class Factor(BaseModel):
+    """A single feature contribution pushing a row toward failure."""
+
+    feature: str
+    contribution: float
+
+
+class BatchRow(BaseModel):
+    """One scored machine row within a simulated batch."""
+
+    udi: int = Field(description="Unique machine identifier (UDI)")
+    product_id: str = Field(description="Product ID, e.g. L51991")
+    type: str = Field(description="Product quality type: L, M or H")
+    air_temperature_k: float
+    process_temperature_k: float
+    rotational_speed_rpm: float
+    torque_nm: float
+    tool_wear_min: float
+    score: float = Field(description="Raw risk score (NOT a calibrated probability)")
+    flagged: bool = Field(description="True when score >= threshold")
+    actual_failure: bool = Field(description="Simulated outcome from the held-out test data")
+    failure_modes: list[str] = Field(
+        description="Ground-truth failure modes (TWF/HDF/PWF/OSF/RNF); ['UNKNOWN'] when a "
+        "failure occurred but no mode flag was set; empty when the machine did not fail"
+    )
+    top_factors: list[Factor] = Field(default_factory=list)
+
+
+class ConfusionCounts(BaseModel):
+    """Cumulative confusion-matrix counts."""
+
+    tp: int = 0
+    fp: int = 0
+    fn: int = 0
+    tn: int = 0
+
+
+class BatchResult(BaseModel):
+    """Result of one simulated batch."""
+
+    batch_id: int
+    created_at: datetime
+    size: int
+    rows: list[BatchRow]
+    counts: ConfusionCounts
+
+
+class ModeBreakdown(BaseModel):
+    """Caught vs missed failures for one failure mode."""
+
+    caught: int = 0
+    missed: int = 0
+
+
+class DashboardSummary(BaseModel):
+    """Cumulative state of the monitoring simulation."""
+
+    threshold: float
+    batches_processed: int
+    machines_scored: int
+    total_available: int
+    counts: ConfusionCounts
+    precision: float | None = None
+    recall: float | None = None
+    f1: float | None = None
+    mode_breakdown: dict[str, ModeBreakdown]
+    replay_complete: bool
+
+
+class SimulationStepResponse(BaseModel):
+    """Response for one simulation tick."""
+
+    batch: BatchResult
+    summary: DashboardSummary
+
+
+class BatchHistoryItem(BaseModel):
+    """A previously processed batch in compact form."""
+
+    batch_id: int
+    size: int
+    counts: ConfusionCounts
+    precision: float | None = None
+    recall: float | None = None
+    rows: list[BatchRow] | None = None
+
+
+class DashboardConfig(BaseModel):
+    """Configuration passed to the front end on load."""
+
+    threshold: float
+    poll_ms: int
+    batch_size_default: int
+    batch_size_max: int
