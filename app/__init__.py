@@ -10,8 +10,11 @@ from app.middleware.error_handler import (
     validation_exception_handler,
     generic_exception_handler,
 )
+from app.data_sources.csv_replay import CsvReplaySource
 from app.models.ml_models import ModelManager
 from app.services.prediction_service import PredictionService
+from app.services.monitoring_service import MonitoringService
+from app.services.simulation_service import SimulationService
 from app.routes.router import register_routes
 
 
@@ -59,10 +62,21 @@ def create_app() -> FastAPI:
     # --- Services ---
     prediction_service = PredictionService(model_manager)
 
+    # --- Simulation (in-memory replay state — run with a single worker) ---
+    data_source = CsvReplaySource(settings.TEST_SET_PATH, settings.SIM_SEED)
+    monitoring_service = MonitoringService(
+        threshold=model_manager.threshold, total_available=data_source.total
+    )
+    simulation_service = SimulationService(
+        data_source, prediction_service, monitoring_service
+    )
+
     # --- Store in app state for dependency injection ---
     app.state.settings = settings
     app.state.model_manager = model_manager
     app.state.prediction_service = prediction_service
+    app.state.monitoring_service = monitoring_service
+    app.state.simulation_service = simulation_service
 
     # --- Routes ---
     register_routes(app)
