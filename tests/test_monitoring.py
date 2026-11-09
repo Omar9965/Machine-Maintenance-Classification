@@ -9,12 +9,14 @@ THRESHOLD = 0.8966
 TOTAL = 2000
 
 
-def make_rows(n=1, scores=None, failures=None, modes=None, flagged=None):
+def make_rows(n=None, scores=None, failures=None, modes=None, flagged=None):
     """Build a scored frame shaped like PredictionService.predict_batch output."""
-    scores = scores if scores is not None else [0.99] * n
-    failures = failures if failures is not None else [0] * n
-    modes = modes if modes is not None else [[] for _ in range(n)]
-    flagged = flagged if flagged is not None else [s >= THRESHOLD for s in scores]
+    if scores is None:
+        scores = [0.99] * (n if n is not None else 1)
+    n = len(scores)
+    failures = [0] * n if failures is None else failures
+    modes = [[] for _ in range(n)] if modes is None else modes
+    flagged = [s >= THRESHOLD for s in scores] if flagged is None else flagged
     return pd.DataFrame(
         {
             "UDI": range(1, n + 1),
@@ -107,7 +109,7 @@ def test_f1_none_when_both_zero(service):
 
 def test_batch_history(service):
     service.record_batch(make_rows(n=3, scores=[0.9, 0.9, 0.1], failures=[1, 0, 0]))
-    service.record_batch(make_rows(n=2, scores=[0.5], failures=[1]))
+    service.record_batch(make_rows(scores=[0.5, 0.2], failures=[1, 0]))
     items = service.history()
     assert [item.batch_id for item in items] == [1, 2]
     assert all(item.rows is None for item in items)
