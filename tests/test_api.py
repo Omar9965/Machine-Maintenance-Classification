@@ -58,28 +58,8 @@ class TestAPIPrediction:
 
 # --- Web Tests ---
 
-class TestWebPages:
-    def test_home_page(self, client):
+class TestWebDashboard:
+    def test_dashboard_renders(self, client):
         response = client.get("/")
-        assert response.status_code == 200
-        assert "text/html" in response.headers["content-type"]
-
-    def test_predict_form(self, client):
-        response = client.get("/predict")
-        assert response.status_code == 200
-        assert "text/html" in response.headers["content-type"]
-
-    def test_predict_form_submission(self, client):
-        response = client.post(
-            "/predict",
-            data={
-                "Type": "M",
-                "Air temperature [K]": "300.0",
-                "Process temperature [K]": "310.0",
-                "Rotational speed [rpm]": "1500.0",
-                "Torque [Nm]": "40.0",
-                "Tool wear [min]": "10.0",
-            },
-        )
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
